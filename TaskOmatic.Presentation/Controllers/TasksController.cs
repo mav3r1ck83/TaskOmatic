@@ -37,7 +37,7 @@ public class TasksController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateTaskCommand command)
     {
         var id = await _mediator.Send(command);
-        return CreatedAtAction(nameof(GetById), new { id }, null);
+        return Ok(id);
     }
 
     [HttpPut("{id}")]

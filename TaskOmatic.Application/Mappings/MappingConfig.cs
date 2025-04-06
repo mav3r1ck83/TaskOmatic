@@ -9,6 +9,8 @@ public class MappingConfig
 {
     public static void Configure()
     {
+        TypeAdapterConfig<TaskEntry, TaskDto>.NewConfig()
+            .Map(dest => dest.userId, src => src.UserID);
         TypeAdapterConfig<List<Task>, GetTasksResponse>
             .NewConfig()
             .Map(dest => dest.TasksDtos, src => src == null 

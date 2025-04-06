@@ -19,7 +19,7 @@ public class UpdateTaskCommandHandler : IRequestHandler<UpdateTaskCommand, Unit>
 
         task.Name = request.Name;
         task.Description = request.Description;
-        task.UserID = request.UserId;
+        task.UserID = request.UserId == 0 ? null : request.UserId;
 
         await _taskRepository.UpdateTask(task, cancellationToken);
         return Unit.Value;

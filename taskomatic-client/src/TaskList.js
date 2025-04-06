@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Table, Button, Dropdown, Form, Spinner } from "react-bootstrap";
 import axios from "axios";
+import debounce from "lodash.debounce";
 
 const TaskList = () => {
   const [tasks, setTasks] = useState([]);
@@ -8,7 +9,13 @@ const TaskList = () => {
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch tasks and users
+  const debouncedUpdate = useRef(
+    debounce((taskId, updatedTask) => {
+      if (!taskId) return;
+      axios.put(`/api/tasks/${taskId}`, updatedTask);
+    }, 1000)
+  ).current;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -16,22 +23,15 @@ const TaskList = () => {
           axios.get("/api/tasks"),
           axios.get("/api/users"),
         ]);
-  
-        // 🐞 Debug
-        console.log("Fetched users:", userRes.data);
-  
-        // Extract tasks
-        const taskList = Array.isArray(taskRes.data.tasks)
-          ? taskRes.data.tasks
-          : Array.isArray(taskRes.data)
-          ? taskRes.data
+
+        const taskList = Array.isArray(taskRes.data.tasksDtos)
+          ? taskRes.data.tasksDtos
           : [];
-  
-        // ✅ Correctly extract `userDtos`
+
         const userList = Array.isArray(userRes.data.userDtos)
           ? userRes.data.userDtos
           : [];
-  
+
         setTasks(taskList);
         setUsers(userList);
         setLoading(false);
@@ -40,10 +40,15 @@ const TaskList = () => {
         setLoading(false);
       }
     };
-  
+
     fetchData();
   }, []);
-  
+
+  useEffect(() => {
+    return () => {
+      debouncedUpdate.cancel(); // Clean up
+    };
+  }, [debouncedUpdate]);
 
   const handleAddTask = async () => {
     try {
@@ -57,21 +62,14 @@ const TaskList = () => {
         id: res.data,
         name: "",
         description: "",
-        userID: null,
+        userId: null,
       };
 
-      const current = Array.isArray(tasks) ? tasks : [];
-      setTasks([...current, newTask]);
+      setTasks((prev) => [...prev, newTask]);
       setEditingTaskId(res.data);
     } catch (error) {
       console.error("Error creating task:", error);
     }
-  };
-
-  const handleUpdate = async (taskId, updatedTask) => {
-    if (!taskId) return; // avoid PUT without id
-    await axios.put(`/api/tasks/${taskId}`, updatedTask);
-
   };
 
   const handleDelete = async (taskId) => {
@@ -86,7 +84,7 @@ const TaskList = () => {
     setTasks(updatedTasks);
 
     const updated = updatedTasks.find((t) => t.id === taskId);
-    handleUpdate(taskId, updated);
+    debouncedUpdate(taskId, updated);
   };
 
   if (loading) {
@@ -157,16 +155,17 @@ const TaskList = () => {
 
                   <td>
                     {isEditing ? (
-                      <Form.Select
-                        value={task.userID || ""}
+                    <Form.Select
+                        value={task.userId || ""}
                         onChange={(e) =>
-                          handleChange(
+                            handleChange(
                             task.id,
-                            "userID",
+                            "userId",
                             e.target.value === "" ? null : parseInt(e.target.value)
-                          )
+                        )
                         }
-                      >
+                    >
+
                         <option value="">Unassigned</option>
                         {Array.isArray(users) &&
                           users.map((user) => (
@@ -176,7 +175,7 @@ const TaskList = () => {
                           ))}
                       </Form.Select>
                     ) : (
-                      users.find((u) => u.id === task.userID)?.firstName || "Unassigned"
+                      users.find((u) => u.id === task.userId)?.firstName || "Unassigned"
                     )}
                   </td>
                 </tr>
