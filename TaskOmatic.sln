@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskOmatic.Presentation", "TaskOmatic.Presentation\TaskOmatic.Presentation.csproj", "{AF32B299-A1DE-4000-995A-FDB7BF26EB0B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskOmatic", "TaskOmatic\TaskOmatic.csproj", "{AF32B299-A1DE-4000-995A-FDB7BF26EB0B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskOmatic.Application", "TaskOmatic.Application\TaskOmatic.Application.csproj", "{C47578B2-BCEC-4084-93FB-BC1B72A79D24}"
 EndProject
